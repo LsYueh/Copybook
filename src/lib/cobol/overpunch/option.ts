@@ -25,7 +25,7 @@ export enum SignIs {
 }
 
 /** Overpunch options */
-export class OverpunchOption {
+export class OverpunchOptions {
   constructor(
     public readonly dataStorage: DataStorageOptions = DataStorageOptions.CI,
     public readonly signIs: SignIs = SignIs.Trailing,

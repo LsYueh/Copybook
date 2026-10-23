@@ -33,33 +33,33 @@ function parseUnit(unit: string): Token {
 /**
  * 將 PIC Clause 拆成 Token。
  *
- * @param pic 例如：S9(3)V99 → S、9(3)、V、9(2)
+ * @param characterString 例如：S9(3)V99 → S、9(3)、V、9(2)
  */
-export function parsePic(pic: string): Token[] {
+export function parsePic(characterString: string): Token[] {
   const tokens: Token[] = [];
   let i = 0;
 
-  while (i < pic.length) {
-    const ch = pic[i];
+  while (i < characterString.length) {
+    const ch = characterString[i];
 
     if (/\s/.test(ch)) { // 跳過空白
       i++;
       continue;
     }
     
-    if (pic[i + 1] === "(") { // 如果是符號 + (n) 形式
-      const closeIndex = pic.indexOf(")", i + 2);
+    if (characterString[i + 1] === "(") { // 如果是符號 + (n) 形式
+      const closeIndex = characterString.indexOf(")", i + 2);
 
       if (closeIndex === -1) {
-        throw new Error(`Missing ")" in PIC: ${pic}`);
+        throw new Error(`Missing ")" in PIC: ${characterString}`);
       }
 
-      const unit: string = pic.slice(i, closeIndex + 1);
+      const unit: string = characterString.slice(i, closeIndex + 1);
       tokens.push(parseUnit(unit));
       i = closeIndex + 1;
     } else { // 連續相同符號合併
       let j = i + 1;
-      while (j < pic.length && pic[j] === ch) {
+      while (j < characterString.length && characterString[j] === ch) {
         j++;
       }
       
@@ -78,15 +78,17 @@ export function parsePic(pic: string): Token[] {
 
 /**
  * 解析 COBOL PIC Clause。
- *
+ * 
  * 目前支援：
  * - X(n)
  * - 9(n)
  * - S9(n)
  * - V 小數點
+ * 
+ * @param characterString 例如：S9(3)V99 → S、9(3)、V、9(2)
  */
-export function parsePicClause(pic: string): Pic_t {
-  const tokens = parsePic(pic);
+export function parsePicClause(characterString: string): Pic_t {
+  const tokens = parsePic(characterString);
   const first = tokens[0];
 
   if (first.char === "X" && tokens.length === 1) {
@@ -104,7 +106,7 @@ export function parsePicClause(pic: string): Pic_t {
   const integer = tokens[index];
 
   if (!integer || integer.char !== "9") {
-    throw new Error(`Invalid PIC Clause: "${pic}"`);
+    throw new Error(`Invalid PIC Clause: "${characterString}"`);
   }
 
   index++;
@@ -117,7 +119,7 @@ export function parsePicClause(pic: string): Pic_t {
     const decimal = tokens[index];
 
     if (!decimal || decimal.char !== "9") {
-      throw new Error(`Invalid PIC Clause: "${pic}"`);
+      throw new Error(`Invalid PIC Clause: "${characterString}"`);
     }
 
     decimals = decimal.count;
@@ -125,7 +127,7 @@ export function parsePicClause(pic: string): Pic_t {
   }
 
   if (index !== tokens.length) {
-    throw new Error(`Invalid PIC Clause: "${pic}"`);
+    throw new Error(`Invalid PIC Clause: "${characterString}"`);
   }
 
   return new Pic_t(type, integer.count, decimals);
